@@ -1,0 +1,48 @@
+---
+- name: Install Jenkins
+  hosts: jenkins_server
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Java
+      apt:
+        name: default-jre
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Java
+      yum:
+        name: java-1.8.0-openjdk
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Add Jenkins APT key
+      apt_key:
+        url: https://pkg.jenkins.io/debian/jenkins.io.key
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Jenkins YUM repo
+      yum_repository:
+        name: jenkins
+        description: Jenkins Stable Repository
+        baseurl: http://pkg.jenkins.io/redhat-stable
+        gpgcheck: yes
+        gpgkey: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+      when: ansible_os_family == "RedHat"
+
+    - name: Install Jenkins
+      package:
+        name: jenkins
+        state: present
+
+    - name: Start Jenkins service
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
